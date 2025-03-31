@@ -21,15 +21,9 @@ import com.android.build.api.instrumentation.FramesComputationMode
 import com.android.build.api.instrumentation.InstrumentationScope
 import com.android.build.api.variant.AndroidComponentsExtension
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
-import com.android.build.api.variant.Component
-import com.android.build.api.variant.HasAndroidTest
-import com.android.build.api.variant.HasUnitTest
 import com.android.build.api.variant.LibraryAndroidComponentsExtension
 import com.android.build.api.variant.TestAndroidComponentsExtension
-import com.android.build.gradle.AppExtension
 import com.android.build.gradle.BaseExtension
-import com.android.build.gradle.LibraryExtension
-import com.android.build.gradle.TestExtension
 import com.android.build.gradle.tasks.JdkImageInput
 import dagger.hilt.android.plugin.task.AggregateDepsTask
 import dagger.hilt.android.plugin.transform.AggregatedPackagesTransform
@@ -54,8 +48,10 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.process.CommandLineArgumentProvider
 import org.objectweb.asm.Opcodes
 
@@ -373,6 +369,11 @@ class HiltGradlePlugin @Inject constructor(private val providers: ProviderFactor
           androidExtension.compileOptions.sourceCompatibility.toString()
         compileTask.targetCompatibility =
           androidExtension.compileOptions.targetCompatibility.toString()
+
+        val javaPluginExtension = project.extensions.getByType(JavaPluginExtension::class.java)
+        val javaCompiler = project.extensions.getByType(JavaToolchainService::class.java)
+          .compilerFor(javaPluginExtension.toolchain)
+        compileTask.javaCompiler.set(javaCompiler)
       }
     componentClasses.builtBy(componentsJavaCompileTask)
 
